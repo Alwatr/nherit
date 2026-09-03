@@ -1,4 +1,4 @@
-FROM docker.io/library/nginx:1.31.4-alpine-otel AS build
+FROM docker.io/library/nginx:1.31.5-alpine-otel AS build
 
 # Alwatr native modules source
 COPY modules/ /tmp/alwatr-modules/
@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     /tmp/modules/;
 
 # Final stage
-FROM docker.io/library/nginx:1.31.4-alpine-otel
+FROM docker.io/library/nginx:1.31.5-alpine-otel
 
 # Clean default configurations and files
 RUN rm -rfv /docker-entrypoint* /etc/nginx/conf.d/* /etc/nginx/nginx.conf /var/www/html /usr/share/nginx/html /data
