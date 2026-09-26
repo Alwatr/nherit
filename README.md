@@ -37,6 +37,16 @@ COPY --from=builder /app/dist/ ./
 RUN pwd; ls -lAhF;
 ```
 
+### Lowercase URI (SEO)
+
+If all your files are lowercase, set `NGINX_LOWERCASE_URI=on` to serve any request path with uppercase letters from its lowercase file (e.g. `/Assets/Logo.PNG` serves `/assets/logo.png`) instead of returning 404. There is no redirect; `$request_uri` and the query string stay untouched.
+
+```Dockerfile
+ENV NGINX_LOWERCASE_URI=on
+```
+
+This is done by a tiny native module (`ngx_http_lowercase_uri_module`, built in the base `nginx` image) that lowercases `$uri` once, before any rewrite or location matching. When disabled (default), the module is not loaded at all, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path; memory is allocated only when the path has an uppercase letter.
+
 ## Sponsors
 
 The following companies, organizations, and individuals support Nginx ongoing maintenance and development. Become a Sponsor to get your logo on our README and website.
