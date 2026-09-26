@@ -1,4 +1,4 @@
-FROM ghcr.io/alwatr/nginx-core:4.12.0
+FROM ghcr.io/alwatr/nginx-core:4.13.0
 
 COPY etc/nginx/ /etc/nginx/
 RUN set -eux; rm -rfv /default-data
@@ -29,9 +29,9 @@ ARG BUILD_REV
 ARG BUILD_DATE
 LABEL org.opencontainers.image.title="alwatr/nginx-json" \
       org.opencontainers.image.description="This is a high-performance version of NGINX, which has been enhanced by Alwatr for the purpose of serving JSON content efficiently." \
-      org.opencontainers.image.base.name="ghcr.io/alwatr/nginx-core:4.12.0" \
-      org.opencontainers.image.version="4.12.0" \
-      org.opencontainers.image.ref.name="4.12.0-nginx1.29.1-alpine-otel" \
+      org.opencontainers.image.base.name="ghcr.io/alwatr/nginx-core:4.13.0" \
+      org.opencontainers.image.version="4.13.0" \
+      org.opencontainers.image.ref.name="4.13.0-nginx1.29.1-alpine-otel" \
       org.opencontainers.image.licenses="MPL-2.0" \
       org.opencontainers.image.created=${BUILD_DATE} \
       org.opencontainers.image.revision=${BUILD_REV} \
