@@ -2,6 +2,20 @@
 
 set -eu
 
+FORCE=false
+
+for arg in "$@"; do
+  case "${arg}" in
+    -f|--force)
+      FORCE=true
+      ;;
+    -h|--help)
+      echo "Usage: $0 [-f|--force]"
+      exit 0
+      ;;
+  esac
+done
+
 echoColor() {
   # 0: gray, 1: red, 2: green, 3: yellow, 4: blue, 5: purple, 6: cyan, 7: white
   local colorCode="\x1b[0;3${1:-7}m"
@@ -43,7 +57,11 @@ if ! command -v brotli >/dev/null 2>&1; then
   apk add --no-cache brotli
 fi
 
-echoStep "Compressing files in ${NGINX_DOCUMENT_ROOT} with Brotli..."
+if [ "${FORCE}" = "true" ]; then
+  echoStep "Compressing files in ${NGINX_DOCUMENT_ROOT} with Brotli (force overwrite)..."
+else
+  echoStep "Compressing files in ${NGINX_DOCUMENT_ROOT} with Brotli (skipping existing)..."
+fi
 
 # Find and compress text-based files
 # Skip already compressed files (.br, .gz, etc.)
@@ -56,8 +74,11 @@ find "${NGINX_DOCUMENT_ROOT}" -type f \
   -o -name "*.rss" -o -name "*.atom" \) \
   ! -name "*.br" ! -name "*.gz" |
   while IFS= read -r file; do
-		echoStep "Compressing: ${file}"
-		brotli --best --squash --verbose --lgwin=0 --keep --suffix=.br --force "${file}"
+    if [ "${FORCE}" != "true" ] && [ -e "${file}.br" ]; then
+      continue
+    fi
+    echoStep "Compressing: ${file}"
+    brotli --best --squash --verbose --lgwin=0 --keep --suffix=.br --force "${file}"
   done
 
 echoDone 'Compression complete!'

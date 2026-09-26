@@ -2,8 +2,23 @@
 
 set -eu
 
-# Set quality from the first argument, or default to 82
-WEBP_QUALITY=${1:-78};
+FORCE=false
+WEBP_QUALITY="${WEBP_QUALITY:-78}"
+
+for arg in "$@"; do
+  case "${arg}" in
+    -f|--force)
+      FORCE=true
+      ;;
+    -h|--help)
+      echo "Usage: $0 [-f|--force] [quality (1-100, default: 78)]"
+      exit 0
+      ;;
+    [0-9]*)
+      WEBP_QUALITY="${arg}"
+      ;;
+  esac
+done
 
 echoColor() {
   # 0: gray, 1: red, 2: green, 3: yellow, 4: blue, 5: purple, 6: cyan, 7: white
@@ -46,7 +61,11 @@ if ! command -v cwebp >/dev/null 2>&1; then
   apk add --no-cache libwebp-tools
 fi
 
-echoStep "Compressing images in ${NGINX_DOCUMENT_ROOT} with WebP..."
+if [ "${FORCE}" = "true" ]; then
+  echoStep "Compressing images in ${NGINX_DOCUMENT_ROOT} with WebP (quality: ${WEBP_QUALITY}, force overwrite)..."
+else
+  echoStep "Compressing images in ${NGINX_DOCUMENT_ROOT} with WebP (quality: ${WEBP_QUALITY}, skipping existing)..."
+fi
 
 # Find and compress image files.
 # The loop below handles skipping already compressed files.
@@ -55,8 +74,11 @@ find "${NGINX_DOCUMENT_ROOT}" -type f \
   -o -name "*.gif" -o -name "*.tiff" -o -name "*.tif" \) \
   ! -name "*.webp" |
   while IFS= read -r file; do
-		echoStep "Compressing: ${file}"
-		cwebp -mt -m 6 -af -v -q "${WEBP_QUALITY}" "${file}" -o "${file}.webp"
+    if [ "${FORCE}" != "true" ] && [ -e "${file}.webp" ]; then
+      continue
+    fi
+    echoStep "Compressing: ${file}"
+    cwebp -mt -m 6 -af -v -q "${WEBP_QUALITY}" "${file}" -o "${file}.webp"
   done
 
 echoDone 'Compression complete!'
