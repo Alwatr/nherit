@@ -1,0 +1,5 @@
+# Loaded only when NGINX_LOWERCASE_URI is enabled (see entrypoint.d/94-lowercase-uri.sh).
+load_module modules/ngx_http_js_module.so;
+
+# JIT-compile regular expressions (used by the uppercase detection map).
+pcre_jit on;

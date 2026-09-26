@@ -1,0 +1,4 @@
+if ($uri_has_uppercase) {
+  return $NGINX_LOWERCASE_URI_STATUS $lowercase_request_uri;
+  break;
+}

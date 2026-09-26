@@ -37,6 +37,17 @@ COPY --from=builder /app/dist/ ./
 RUN pwd; ls -lAhF;
 ```
 
+### Lowercase URI Redirect (SEO)
+
+If all your files are lowercase, set `NGINX_LOWERCASE_URI=on` to permanently redirect any request whose path contains uppercase letters to its lowercase version (the query string is preserved), instead of returning 404.
+
+```Dockerfile
+ENV NGINX_LOWERCASE_URI=on \
+    NGINX_LOWERCASE_URI_STATUS=301
+```
+
+When disabled (default), the related config and the njs module are removed at startup, so there is no runtime overhead. When enabled, lowercase requests only pay for a single JIT-compiled regex check; the njs handler runs only for the redirected requests.
+
 ## Sponsors
 
 The following companies, organizations, and individuals support Nginx ongoing maintenance and development. Become a Sponsor to get your logo on our README and website.
