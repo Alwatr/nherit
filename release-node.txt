@@ -1,7 +1,7 @@
 # Remember: change logs generated from pull requests, do not push hotfix directly to default branch.
 
-current_version=4.13.0
-new_version=4.13.1
+current_version=4.13.1
+new_version=4.14.0
 
 git checkout next
 git pull
@@ -10,6 +10,7 @@ find . -name 'Dockerfile' -exec sed -i '' "s/$current_version/$new_version/g" {}
 
 git commit -am "release: v$new_version"
 git push
+
 git tag v$new_version -m v$new_version --force --sign
 git push origin v$new_version --force
 
