@@ -47,6 +47,10 @@ ENV NGINX_LOWERCASE_URI=on
 
 This is done by a tiny native module (`ngx_http_lowercase_uri_module`, built in the base `nginx` image) that lowercases `$uri` once, before any rewrite or location matching. When disabled (default), the module is not loaded at all, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path; memory is allocated only when the path has an uppercase letter.
 
+### Regular Expression Performance (PCRE JIT)
+
+PCRE Just-In-Time compilation is enabled by default (`pcre_jit on;`) in the main configuration context. Regular expressions defined at configuration parsing time (such as `location ~ ...`, `rewrite`, and `map` directives used for MIME-type mapping and WebP detection) are JIT-compiled into native machine code at startup, significantly reducing CPU overhead and speeding up regex matching during request handling.
+
 ## Sponsors
 
 The following companies, organizations, and individuals support Nginx ongoing maintenance and development. Become a Sponsor to get your logo on our README and website.
