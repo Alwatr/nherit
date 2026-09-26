@@ -2,12 +2,22 @@
 
 set -eu
 
+for arg in "$@"; do
+  case "${arg}" in
+    -h|--help)
+      echo "Usage: $0 [target_directory]"
+      echo "Default directory: \$NGINX_DOCUMENT_ROOT"
+      exit 0
+      ;;
+  esac
+done
+
 echoColor() {
   # 0: gray, 1: red, 2: green, 3: yellow, 4: blue, 5: purple, 6: cyan, 7: white
-  local colorCode="\x1b[0;3${1:-7}m"
+  local colorCode="\033[0;3${1:-7}m"
   local message="${2:-}"
-  local reset="\x1b[0m"
-  printf "${colorCode}${message}${reset}"
+  local reset="\033[0m"
+  printf "%b%b%b" "${colorCode}" "${message}" "${reset}"
 }
 
 echoStep() {
@@ -43,12 +53,12 @@ fi
 
 echoStep "Fixing directory permissions (755) in ${DOCUMENT_ROOT} ..."
 
-# Directories: 755 (rwxr-xr-x)
-find "${DOCUMENT_ROOT}" -type d -exec chmod -v 755 {} +
+# Directories: 755 (rwxr-xr-x) - only change if not already 755
+find "${DOCUMENT_ROOT}" -type d ! -perm 755 -exec chmod -v 755 {} +
 
 echoStep "Fixing file permissions (644) in ${DOCUMENT_ROOT} ..."
 
-# Files: 644 (rw-r--r--)
-find "${DOCUMENT_ROOT}" -type f -exec chmod -v 644 {} +
+# Files: 644 (rw-r--r--) - only change if not already 644
+find "${DOCUMENT_ROOT}" -type f ! -perm 644 -exec chmod -v 644 {} +
 
 echoDone 'Permissions fixed!'
