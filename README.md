@@ -45,7 +45,7 @@ If all your files are lowercase, set `NGINX_LOWERCASE_URI=on` to serve any reque
 ENV NGINX_LOWERCASE_URI=on
 ```
 
-This is done by a tiny native module (`ngx_http_lowercase_uri_module`) that lowercases `$uri` once, before any rewrite or location matching. When disabled (default), the module is not loaded at all, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path; memory is allocated only when the path has an uppercase letter.
+This is done by a tiny native module (`ngx_http_lowercase_uri_module`, built in the base `nginx` image) that lowercases `$uri` once, before any rewrite or location matching. When disabled (default), the module is not loaded at all, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path; memory is allocated only when the path has an uppercase letter.
 
 ## Sponsors
 

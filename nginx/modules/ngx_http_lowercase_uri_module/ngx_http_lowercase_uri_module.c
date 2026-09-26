@@ -49,35 +49,39 @@ ngx_module_t  ngx_http_lowercase_uri_module = {
 static ngx_int_t
 ngx_http_lowercase_uri_handler(ngx_http_request_t *r)
 {
-    u_char  *p, *last;
+    u_char  *p, *last, *uri;
 
-    p = r->uri.data;
-    last = p + r->uri.len;
+    last = r->uri.data + r->uri.len;
 
-    while (p < last && (*p < 'A' || *p > 'Z')) {
-        p++;
+    /* find the first byte that changes when lowercased */
+
+    for (p = r->uri.data; p < last; p++) {
+        if (ngx_tolower(*p) != *p) {
+            break;
+        }
     }
 
     if (p == last) {
         return NGX_DECLINED;
     }
 
-    if (r->uri.data == r->unparsed_uri.data) {
-        /* the URI still points into the client buffer shared with $request_uri */
+    uri = r->uri.data;
 
-        p = ngx_pnalloc(r->pool, r->uri.len);
-        if (p == NULL) {
+    if (uri == r->unparsed_uri.data) {
+        /* $uri shares the client buffer with $request_uri, keep the latter untouched */
+
+        uri = ngx_pnalloc(r->pool, r->uri.len);
+        if (uri == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
         }
 
-        ngx_strlow(p, r->uri.data, r->uri.len);
-        r->uri.data = p;
-        ngx_http_set_exten(r);
-
-        return NGX_DECLINED;
+        ngx_memcpy(uri, r->uri.data, p - r->uri.data);
     }
 
-    ngx_strlow(r->uri.data, r->uri.data, r->uri.len);
+    ngx_strlow(uri + (p - r->uri.data), p, last - p);
+
+    r->uri.data = uri;
+    ngx_http_set_exten(r);
 
     return NGX_DECLINED;
 }

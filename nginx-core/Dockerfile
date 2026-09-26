@@ -1,20 +1,3 @@
-FROM ghcr.io/alwatr/nginx:4.11.1 AS build
-
-# Build Alwatr native modules against the exact NGINX version of the base image (NGINX_VERSION is inherited).
-COPY modules/ /tmp/alwatr-modules/
-RUN set -eux; \
-  apk add --no-cache build-base curl linux-headers openssl-dev pcre2-dev zlib-dev; \
-  curl -sSL "https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" | tar -xzC /tmp; \
-  cd "/tmp/nginx-${NGINX_VERSION}"; \
-  ./configure \
-    --with-compat \
-    --add-dynamic-module=/tmp/alwatr-modules/ngx_http_lowercase_uri_module; \
-  make modules; \
-  mkdir -p /tmp/modules; \
-  cp -av objs/ngx_http_lowercase_uri_module.so /tmp/modules/;
-
-# ---
-
 FROM ghcr.io/alwatr/nginx:4.11.1
 
 RUN apk add --no-cache curl libwebp-tools brotli
@@ -25,7 +8,6 @@ WORKDIR /data
 COPY etc/nginx/ /etc/nginx/
 COPY default-data/ /default-data/
 COPY tools/ /usr/local/bin/
-COPY --from=build /tmp/modules/*.so /etc/nginx/modules/
 # RUN ls -RlahF /etc/nginx /default-data /data /usr/local/bin
 
 # Default environment for nginx template
