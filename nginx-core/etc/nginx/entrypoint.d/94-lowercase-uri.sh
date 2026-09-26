@@ -12,8 +12,7 @@ case "${NGINX_LOWERCASE_URI:-}" in
   ;;
 *)
   echo "$ME: Remove lowercase URI redirect config"
-  rm -fv /etc/nginx/conf.d/01-load-module-njs.conf
-  rm -fv /etc/nginx/conf.d/http.d/43-map-lowercase-uri.conf
+  rm -fv /etc/nginx/conf.d/01-load-module-lowercase-uri.conf
   rm -fv /etc/nginx/conf.d/location.d/45-lowercase-uri.conf
   ;;
 esac

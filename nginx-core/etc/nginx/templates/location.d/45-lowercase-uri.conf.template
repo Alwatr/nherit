@@ -1,4 +1,5 @@
-if ($uri_has_uppercase) {
-  return $NGINX_LOWERCASE_URI_STATUS $lowercase_request_uri;
+# $lowercase_redirect_uri is empty unless the request path contains an uppercase letter.
+if ($lowercase_redirect_uri) {
+  return $NGINX_LOWERCASE_URI_STATUS $lowercase_redirect_uri;
   break;
 }

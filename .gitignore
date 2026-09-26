@@ -22,7 +22,6 @@ build
 *.js
 !*.config.js
 !**/res/*.js
-!**/etc/nginx/njs/*.js
 
 # Dependencies
 node_modules

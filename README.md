@@ -46,7 +46,7 @@ ENV NGINX_LOWERCASE_URI=on \
     NGINX_LOWERCASE_URI_STATUS=301
 ```
 
-When disabled (default), the related config and the njs module are removed at startup, so there is no runtime overhead. When enabled, lowercase requests only pay for a single JIT-compiled regex check; the njs handler runs only for the redirected requests.
+This is done by a tiny native module (`ngx_http_lowercase_uri_module`). When disabled (default), the module is not loaded and its config is removed at startup, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path (no regex, no allocation); memory is allocated only when a redirect is returned.
 
 ## Sponsors
 

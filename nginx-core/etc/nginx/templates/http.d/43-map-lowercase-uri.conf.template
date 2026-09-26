@@ -1,9 +1,0 @@
-# Detect ASCII uppercase letters in the normalized (decoded) path, evaluated by PCRE once per request.
-map $uri $uri_has_uppercase {
-  default 0;
-  "~[A-Z]" 1;
-}
-
-# Lazy: the njs handler runs only when the variable is read, i.e. only for the redirected requests.
-js_import lowercase_uri from /etc/nginx/njs/lowercase-uri.js;
-js_set $lowercase_request_uri lowercase_uri.redirectUri;
