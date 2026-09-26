@@ -1,0 +1,2 @@
+# Loaded only when NGINX_LOWERCASE_URI is enabled (see entrypoint.d/94-lowercase-uri.sh).
+load_module modules/ngx_http_lowercase_uri_module.so;
