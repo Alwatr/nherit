@@ -1,5 +1,8 @@
 FROM docker.io/library/nginx:1.31.4-alpine-otel AS build
 
+# Alwatr native modules source
+COPY modules/ /tmp/alwatr-modules/
+
 # NGINX_VERSION is available from the base image
 RUN --mount=type=cache,target=/var/cache/apk \
   set -eux; \
@@ -38,12 +41,13 @@ RUN --mount=type=cache,target=/var/cache/apk \
     --config Release \
     --target brotlienc; \
   \
-  printf "\n\x1b[0;36m🔸 Configure NGINX with the brotli dynamic module\x1b[0m\n\n"; \
+  printf "\n\x1b[0;36m🔸 Configure NGINX with the dynamic modules\x1b[0m\n\n"; \
   cd "/tmp/nginx-${NGINX_VERSION}"; \
   ./configure \
     --with-compat \
     --add-dynamic-module=/tmp/ngx_brotli \
-    --add-dynamic-module=/tmp/headers-more-nginx-module; \
+    --add-dynamic-module=/tmp/headers-more-nginx-module \
+    --add-dynamic-module=/tmp/alwatr-modules/ngx_http_lowercase_uri_module; \
   \
   printf "\n\x1b[0;36m🔸 Building the dynamic modules\x1b[0m\n\n"; \
   make modules; \
@@ -54,6 +58,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     objs/ngx_http_brotli_filter_module.so \
     objs/ngx_http_brotli_static_module.so \
     objs/ngx_http_headers_more_filter_module.so \
+    objs/ngx_http_lowercase_uri_module.so \
     /tmp/modules/;
 
 # Final stage
