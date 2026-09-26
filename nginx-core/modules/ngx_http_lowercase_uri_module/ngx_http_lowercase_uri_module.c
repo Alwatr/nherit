@@ -1,13 +1,9 @@
 /*
  * Alwatr lowercase URI module.
  *
- * Provides the $lowercase_redirect_uri variable:
- *   - empty when the request path (raw $request_uri before '?') has no ASCII uppercase letter;
- *   - otherwise the lowercased path followed by the untouched query string.
- *
- * Percent-encoded bytes are kept as-is (e.g. %D8%A7 does not trigger a redirect), except encoded
- * uppercase letters (%41-%5A), which are decoded to their lowercase form to avoid a redirect loop.
- * The variable is evaluated lazily with a single linear scan and allocates memory only on a redirect.
+ * Lowercases the normalized request URI ($uri) once, before any rewrite or location matching,
+ * so every location and try_files serves the lowercase file without a redirect.
+ * $request_uri and the query string stay untouched. Loading the module enables it.
  */
 
 #include <ngx_config.h>
@@ -15,15 +11,13 @@
 #include <ngx_http.h>
 
 
-static ngx_int_t ngx_http_lowercase_uri_add_variables(ngx_conf_t *cf);
-static ngx_int_t ngx_http_lowercase_redirect_uri_variable(ngx_http_request_t *r,
-    ngx_http_variable_value_t *v, uintptr_t data);
-static ngx_int_t ngx_http_lowercase_uri_unhex(u_char *p);
+static ngx_int_t ngx_http_lowercase_uri_handler(ngx_http_request_t *r);
+static ngx_int_t ngx_http_lowercase_uri_init(ngx_conf_t *cf);
 
 
 static ngx_http_module_t  ngx_http_lowercase_uri_module_ctx = {
-    ngx_http_lowercase_uri_add_variables,  /* preconfiguration */
-    NULL,                                  /* postconfiguration */
+    NULL,                                  /* preconfiguration */
+    ngx_http_lowercase_uri_init,           /* postconfiguration */
 
     NULL,                                  /* create main configuration */
     NULL,                                  /* init main configuration */
@@ -52,140 +46,57 @@ ngx_module_t  ngx_http_lowercase_uri_module = {
 };
 
 
-static ngx_str_t  ngx_http_lowercase_redirect_uri_name =
-    ngx_string("lowercase_redirect_uri");
-
-
 static ngx_int_t
-ngx_http_lowercase_uri_add_variables(ngx_conf_t *cf)
+ngx_http_lowercase_uri_handler(ngx_http_request_t *r)
 {
-    ngx_http_variable_t  *var;
+    u_char  *p, *last;
 
-    var = ngx_http_add_variable(cf, &ngx_http_lowercase_redirect_uri_name, 0);
-    if (var == NULL) {
-        return NGX_ERROR;
+    p = r->uri.data;
+    last = p + r->uri.len;
+
+    while (p < last && (*p < 'A' || *p > 'Z')) {
+        p++;
     }
 
-    var->get_handler = ngx_http_lowercase_redirect_uri_variable;
+    if (p == last) {
+        return NGX_DECLINED;
+    }
 
-    return NGX_OK;
+    if (r->uri.data == r->unparsed_uri.data) {
+        /* the URI still points into the client buffer shared with $request_uri */
+
+        p = ngx_pnalloc(r->pool, r->uri.len);
+        if (p == NULL) {
+            return NGX_HTTP_INTERNAL_SERVER_ERROR;
+        }
+
+        ngx_strlow(p, r->uri.data, r->uri.len);
+        r->uri.data = p;
+        ngx_http_set_exten(r);
+
+        return NGX_DECLINED;
+    }
+
+    ngx_strlow(r->uri.data, r->uri.data, r->uri.len);
+
+    return NGX_DECLINED;
 }
 
 
 static ngx_int_t
-ngx_http_lowercase_redirect_uri_variable(ngx_http_request_t *r,
-    ngx_http_variable_value_t *v, uintptr_t data)
+ngx_http_lowercase_uri_init(ngx_conf_t *cf)
 {
-    u_char     *p, *last, *dst;
-    ngx_int_t   ch;
+    ngx_http_handler_pt        *h;
+    ngx_http_core_main_conf_t  *cmcf;
 
-    v->valid = 1;
-    v->no_cacheable = 0;
-    v->not_found = 0;
+    cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
 
-    p = r->unparsed_uri.data;
-    last = p + r->unparsed_uri.len;
-
-    /* fast path: scan the path for an uppercase letter, no allocation */
-
-    for ( /* void */ ; p < last; p++) {
-
-        if (*p == '?') {
-            break;
-        }
-
-        if (*p >= 'A' && *p <= 'Z') {
-            goto found;
-        }
-
-        if (*p == '%' && last - p >= 3) {
-            ch = ngx_http_lowercase_uri_unhex(p + 1);
-
-            if (ch >= 'A' && ch <= 'Z') {
-                goto found;
-            }
-
-            p += 2;
-        }
-    }
-
-    v->len = 0;
-    v->data = (u_char *) "";
-
-    return NGX_OK;
-
-found:
-
-    /* the result is never longer than the original */
-
-    v->data = ngx_pnalloc(r->pool, r->unparsed_uri.len);
-    if (v->data == NULL) {
+    h = ngx_array_push(&cmcf->phases[NGX_HTTP_POST_READ_PHASE].handlers);
+    if (h == NULL) {
         return NGX_ERROR;
     }
 
-    dst = ngx_cpymem(v->data, r->unparsed_uri.data, p - r->unparsed_uri.data);
-
-    for ( /* void */ ; p < last; p++) {
-
-        if (*p == '?') {
-            dst = ngx_cpymem(dst, p, last - p);
-            break;
-        }
-
-        if (*p >= 'A' && *p <= 'Z') {
-            *dst++ = *p | 0x20;
-            continue;
-        }
-
-        if (*p == '%' && last - p >= 3) {
-            ch = ngx_http_lowercase_uri_unhex(p + 1);
-
-            if (ch >= 'A' && ch <= 'Z') {
-                *dst++ = (u_char) (ch | 0x20);
-
-            } else {
-                dst = ngx_cpymem(dst, p, 3);
-            }
-
-            p += 2;
-            continue;
-        }
-
-        *dst++ = *p;
-    }
-
-    v->len = dst - v->data;
+    *h = ngx_http_lowercase_uri_handler;
 
     return NGX_OK;
-}
-
-
-static ngx_int_t
-ngx_http_lowercase_uri_unhex(u_char *p)
-{
-    u_char      c;
-    ngx_int_t   n;
-    ngx_uint_t  i;
-
-    n = 0;
-
-    for (i = 0; i < 2; i++) {
-        c = p[i];
-
-        if (c >= '0' && c <= '9') {
-            n = n * 16 + (c - '0');
-            continue;
-        }
-
-        c |= 0x20;
-
-        if (c >= 'a' && c <= 'f') {
-            n = n * 16 + (c - 'a' + 10);
-            continue;
-        }
-
-        return -1;
-    }
-
-    return n;
 }

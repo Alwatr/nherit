@@ -37,16 +37,15 @@ COPY --from=builder /app/dist/ ./
 RUN pwd; ls -lAhF;
 ```
 
-### Lowercase URI Redirect (SEO)
+### Lowercase URI (SEO)
 
-If all your files are lowercase, set `NGINX_LOWERCASE_URI=on` to permanently redirect any request whose path contains uppercase letters to its lowercase version (the query string is preserved), instead of returning 404.
+If all your files are lowercase, set `NGINX_LOWERCASE_URI=on` to serve any request path with uppercase letters from its lowercase file (e.g. `/Assets/Logo.PNG` serves `/assets/logo.png`) instead of returning 404. There is no redirect; `$request_uri` and the query string stay untouched.
 
 ```Dockerfile
-ENV NGINX_LOWERCASE_URI=on \
-    NGINX_LOWERCASE_URI_STATUS=301
+ENV NGINX_LOWERCASE_URI=on
 ```
 
-This is done by a tiny native module (`ngx_http_lowercase_uri_module`). When disabled (default), the module is not loaded and its config is removed at startup, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path (no regex, no allocation); memory is allocated only when a redirect is returned.
+This is done by a tiny native module (`ngx_http_lowercase_uri_module`) that lowercases `$uri` once, before any rewrite or location matching. When disabled (default), the module is not loaded at all, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path; memory is allocated only when the path has an uppercase letter.
 
 ## Sponsors
 
