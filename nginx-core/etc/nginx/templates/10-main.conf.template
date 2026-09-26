@@ -10,6 +10,9 @@ pid /var/run/nginx.pid;
 # Maximum number of connections = worker_processes * worker_connections
 worker_processes $NGINX_WORKER_PROCESSES;
 
+# Enables Just-In-Time compiling of PCRE (regular expressions) at configuration load time to significantly speed up processing of regular expressions.
+pcre_jit on;
+
 # Reduces timer resolution in worker processes, thus reducing the number of gettimeofday() system calls made. By default, gettimeofday() is called each time a kernel event is received. With reduced resolution, gettimeofday() is only called once per specified interval.
 timer_resolution 100ms;
 
