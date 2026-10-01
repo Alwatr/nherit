@@ -1,4 +1,4 @@
-FROM ghcr.io/alwatr/nginx-core:4.16.0
+FROM ghcr.io/alwatr/nginx-core:4.16.1
 
 COPY etc/nginx/ /etc/nginx/
 # COPY default-data/ /default-data/
@@ -33,9 +33,9 @@ ENV IMAGE_VERSION=$BUILD_VERSION \
     IMAGE_REVISION=$BUILD_REV
 LABEL org.opencontainers.image.title="alwatr/nginx-pwa" \
       org.opencontainers.image.description="This is a high-performance version of NGINX, which has been enhanced by Alwatr for the purpose of serving PWA efficiently." \
-      org.opencontainers.image.base.name="ghcr.io/alwatr/nginx-core:4.16.0" \
-      org.opencontainers.image.version="4.16.0" \
-      org.opencontainers.image.ref.name="4.16.0-nginx1.31.6-alpine-otel" \
+      org.opencontainers.image.base.name="ghcr.io/alwatr/nginx-core:4.16.1" \
+      org.opencontainers.image.version="4.16.1" \
+      org.opencontainers.image.ref.name="4.16.1-nginx1.31.6-alpine-otel" \
       org.opencontainers.image.licenses="MPL-2.0" \
       org.opencontainers.image.created=${BUILD_DATE} \
       org.opencontainers.image.revision=${BUILD_REV} \

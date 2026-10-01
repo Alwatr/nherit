@@ -1,4 +1,4 @@
-FROM ghcr.io/alwatr/nginx:4.16.0
+FROM ghcr.io/alwatr/nginx:4.16.1
 
 RUN apk add --no-cache curl libwebp-tools brotli
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --start-interval=1s --retries=3 CMD curl -fso /dev/null http://localhost/server-info || exit 1
@@ -69,9 +69,9 @@ ENV IMAGE_VERSION=$BUILD_VERSION \
     IMAGE_REVISION=$BUILD_REV
 LABEL org.opencontainers.image.title="alwatr/nginx-core" \
       org.opencontainers.image.description="This is a high-performance version of NGINX, which has been enhanced by Alwatr for the purpose of serving static content efficiently." \
-      org.opencontainers.image.base.name="ghcr.io/alwatr/nginx:4.16.0" \
-      org.opencontainers.image.version="4.16.0-nginx1.31.6" \
-      org.opencontainers.image.ref.name="4.16.0-nginx1.31.6-alpine-otel" \
+      org.opencontainers.image.base.name="ghcr.io/alwatr/nginx:4.16.1" \
+      org.opencontainers.image.version="4.16.1-nginx1.31.6" \
+      org.opencontainers.image.ref.name="4.16.1-nginx1.31.6-alpine-otel" \
       org.opencontainers.image.licenses="MPL-2.0" \
       org.opencontainers.image.created=${BUILD_DATE} \
       org.opencontainers.image.revision=${BUILD_REV} \
