@@ -175,3 +175,4 @@ jobs:
           build-args: |
             BUILD_DATE=${{github.event.repository.updated_at}}
             BUILD_REV=${{github.sha}}
+            BUILD_VERSION=${{ steps.meta.outputs.version }}

@@ -28,6 +28,9 @@ ENV NGINX_CLIENT_MAX_BODY_SIZE=1k \
 
 ARG BUILD_REV
 ARG BUILD_DATE
+ARG BUILD_VERSION=dev
+ENV IMAGE_VERSION=$BUILD_VERSION \
+    IMAGE_REVISION=$BUILD_REV
 LABEL org.opencontainers.image.title="alwatr/nginx-pwa" \
       org.opencontainers.image.description="This is a high-performance version of NGINX, which has been enhanced by Alwatr for the purpose of serving PWA efficiently." \
       org.opencontainers.image.base.name="ghcr.io/alwatr/nginx-core:4.16.0" \

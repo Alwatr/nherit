@@ -64,6 +64,9 @@ ENV NGINX_CLIENT_MAX_BODY_SIZE=10m \
 
 ARG BUILD_REV
 ARG BUILD_DATE
+ARG BUILD_VERSION=dev
+ENV IMAGE_VERSION=$BUILD_VERSION \
+    IMAGE_REVISION=$BUILD_REV
 LABEL org.opencontainers.image.title="alwatr/nginx-core" \
       org.opencontainers.image.description="This is a high-performance version of NGINX, which has been enhanced by Alwatr for the purpose of serving static content efficiently." \
       org.opencontainers.image.base.name="ghcr.io/alwatr/nginx:4.16.0" \

@@ -6,6 +6,8 @@ entrypointName=${0##*/} # not ME: sourced *.envsh scripts set their own ME
 
 entrypointDir=/etc/nginx/entrypoint.d/
 
+echo "$entrypointName: Alwatr image v${IMAGE_VERSION:-dev} (${IMAGE_REVISION:-unknown}), nginx v${NGINX_VERSION:-unknown}"
+
 if [ "$1" = "nginx" ] || [ "$1" = "nginx-debug" ]; then
   if /usr/bin/find "$entrypointDir" -mindepth 1 -maxdepth 1 -type f -print -quit 2>/dev/null | read v; then
     echo "$entrypointName: $entrypointDir is not empty, will attempt to perform configuration"

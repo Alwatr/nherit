@@ -83,6 +83,9 @@ CMD ["nginx", "-g", "daemon off;"]
 
 ARG BUILD_REV
 ARG BUILD_DATE
+ARG BUILD_VERSION=dev
+ENV IMAGE_VERSION=$BUILD_VERSION \
+    IMAGE_REVISION=$BUILD_REV
 LABEL org.opencontainers.image.title="alwatr/nginx" \
       org.opencontainers.image.description="The slim (lightweight) version of the NGINX web server, packaged by Alwatr." \
       org.opencontainers.image.base.name="docker.io/library/nginx:1.31.6-alpine-otel" \
