@@ -39,13 +39,19 @@ RUN pwd; ls -lAhF;
 
 ### Lowercase URI (SEO)
 
-If all your files are lowercase, set `NGINX_LOWERCASE_URI=on` to serve any request path with uppercase letters from its lowercase file (e.g. `/Assets/Logo.PNG` serves `/assets/logo.png`) instead of returning 404. There is no redirect; `$request_uri` and the query string stay untouched.
+Set `NGINX_LOWERCASE_URI=on` to serve a request path with uppercase letters from its lowercase file (e.g. `/Assets/Logo.PNG` serves `/assets/logo.png`) instead of returning 404. A file that really has uppercase letters is still served as is. There is no redirect; `$request_uri` and the query string stay untouched.
 
 ```Dockerfile
 ENV NGINX_LOWERCASE_URI=on
 ```
 
-This is done by a tiny native module (`ngx_http_lowercase_uri_module`, built in the base `nginx` image) that lowercases `$uri` once, before any rewrite or location matching. When disabled (default), the module is not loaded at all, so there is no runtime overhead. When enabled, each request pays only for a single byte scan of its path; memory is allocated only when the path has an uppercase letter.
+A tiny native module (`ngx_http_lowercase_uri_module`, built in the base `nginx` image) adds the `$lowercase_uri` variable, and the root location uses it only as a `try_files` fallback:
+
+```nginx
+try_files $uri $uri/ $lowercase_uri $lowercase_uri/ =404;
+```
+
+So the lowercase path is built and checked only when the original path is missing. When disabled (default), the module is not loaded at all. You can use `$lowercase_uri` in your own `try_files` too.
 
 ### Regular Expression Performance (PCRE JIT)
 
