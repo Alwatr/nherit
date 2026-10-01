@@ -2,7 +2,7 @@
 
 set -eu
 
-ME=$(basename "$0")
+ME=${0##*/}
 
 auto_envsubst() {
   local template_dir="${NGINX_ENVSUBST_TEMPLATE_DIR:-/etc/nginx/templates}"

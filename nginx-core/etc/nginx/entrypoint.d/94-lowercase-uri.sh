@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-ME=$(basename "$0")
+ME=${0##*/}
 MODULE=/etc/nginx/modules/ngx_http_lowercase_uri_module.so
 
 # The module is built in the base nginx image; skip it on an older base image.

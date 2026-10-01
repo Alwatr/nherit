@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-ME=$(basename "$0")
+ME=${0##*/}
 
 if [ -n "${NGINX_FORCE_DOMAIN:-}" ]; then
   echo "$ME: Enable force domain config to '$NGINX_FORCE_DOMAIN'"

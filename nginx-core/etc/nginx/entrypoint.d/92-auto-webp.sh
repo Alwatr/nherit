@@ -3,7 +3,7 @@ set -eu
 
 test -n "${TEST_MODE:-}" && exit 0
 
-ME=$(basename "$0")
+ME=${0##*/}
 
 case "${NGINX_AUTO_WEBP:-}" in
 1 | on | true | yes | ON | On | True | TRUE | Yes | YES)
