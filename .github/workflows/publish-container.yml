@@ -129,6 +129,7 @@ jobs:
           NGINX_PROCESSES_AUTOTUNE: 'on'
           NGINX_RESOLVERS: 'local'
           NGINX_DISALLOW_ROBOTS: 'on'
+          NGINX_LOWERCASE_URI: 'on'
 
         with:
           context: ./${{matrix.path}}
