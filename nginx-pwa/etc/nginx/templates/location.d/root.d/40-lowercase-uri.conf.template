@@ -1,0 +1,3 @@
+# PWA version of the core file: serve the lowercase file only when the original one is missing,
+# then fall back to the app shell (see entrypoint.d/95-pwa-lowercase-uri.sh).
+try_files $uri $lowercase_uri /index.html =404;
