@@ -27,16 +27,40 @@ jobs:
 
     permissions:
       contents: read
+      pull-requests: read
 
     steps:
       - name: ⤵️ Checkout repository
         uses: actions/checkout@v7
 
+      - name: ❔ Check Container files changed
+        id: file_change
+        if: ${{ github.event_name != 'release' && github.event_name != 'workflow_dispatch' }}
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            nginx: nginx/**
+            nginx-core: nginx-core/**
+            nginx-ws: nginx-ws/**
+            nginx-cdn: nginx-cdn/**
+            nginx-json: nginx-json/**
+            nginx-pwa: nginx-pwa/**
+
       # Build in dependency order on one runner. Each image is also tagged as the exact base image
       # that its children use in FROM, so they are tested on this commit, not on the last release.
-      - name: 🧪 Build and test all containers
+      # An image is tested when its folder changed or its base image was built here (release: all).
+      - name: 🧪 Build and test changed containers
+        env:
+          CHANGED: ${{ join(fromJSON(steps.file_change.outputs.changes || '["nginx"]'), ' ') }}
         run: |
+          echo "Changed: $CHANGED"
+          built=""
           for path in nginx nginx-core nginx-ws nginx-cdn nginx-json nginx-pwa; do
+            parent=$(sed -n "s#^FROM ghcr.io/$USER/\([^:]*\):.*#\1#p" "$path/Dockerfile")
+            case " $CHANGED $built " in
+            *" $path "* | *" ${parent:-none} "*) ;;
+            *) echo "Skip $path"; continue ;;
+            esac
             echo "::group::Build and test $path"
             docker build -t "$USER/$path:test" "./$path"
             docker run --rm -e TEST_MODE=1 "$USER/$path:test" /etc/nginx/entrypoint.sh nginx -T -c /etc/nginx/nginx.conf
@@ -44,6 +68,7 @@ jobs:
               base=$(sed -n "s#^FROM \(ghcr.io/$USER/$path:[^ ]*\).*#\1#p" "$child")
               if [ -n "$base" ]; then docker tag "$USER/$path:test" "$base"; fi
             done
+            built="$built $path"
             echo "::endgroup::"
           done
 
