@@ -67,8 +67,8 @@ ARG BUILD_DATE
 LABEL org.opencontainers.image.title="alwatr/nginx-core" \
       org.opencontainers.image.description="This is a high-performance version of NGINX, which has been enhanced by Alwatr for the purpose of serving static content efficiently." \
       org.opencontainers.image.base.name="ghcr.io/alwatr/nginx:4.15.1" \
-      org.opencontainers.image.version="4.15.1-nginx1.31.4" \
-      org.opencontainers.image.ref.name="4.15.1-nginx1.31.4-alpine-otel" \
+      org.opencontainers.image.version="4.15.1-nginx1.31.6" \
+      org.opencontainers.image.ref.name="4.15.1-nginx1.31.6-alpine-otel" \
       org.opencontainers.image.licenses="MPL-2.0" \
       org.opencontainers.image.created=${BUILD_DATE} \
       org.opencontainers.image.revision=${BUILD_REV} \
