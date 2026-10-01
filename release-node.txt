@@ -1,7 +1,7 @@
 # Remember: change logs generated from pull requests, do not push hotfix directly to default branch.
 
-current_version=4.14.0
-new_version=4.14.1
+current_version=4.14.1
+new_version=4.15.0
 
 git checkout next
 git pull
