@@ -1,0 +1,2 @@
+# Serve the lowercase file only when the original one is missing (see entrypoint.d/94-lowercase-uri.sh).
+try_files $uri $uri/ $lowercase_uri $lowercase_uri/ =404;
