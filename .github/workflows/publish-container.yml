@@ -19,7 +19,36 @@ env:
   USER: alwatr
 
 jobs:
+  test:
+    if: github.repository_owner == 'Alwatr'
+
+    name: Test Containers
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: ⤵️ Checkout repository
+        uses: actions/checkout@v7
+
+      # Build in dependency order on one runner. Each image is also tagged as the exact base image
+      # that its children use in FROM, so they are tested on this commit, not on the last release.
+      - name: 🧪 Build and test all containers
+        run: |
+          for path in nginx nginx-core nginx-ws nginx-cdn nginx-json nginx-pwa; do
+            echo "::group::Build and test $path"
+            docker build -t "$USER/$path:test" "./$path"
+            docker run --rm -e TEST_MODE=1 "$USER/$path:test" /etc/nginx/entrypoint.sh nginx -T -c /etc/nginx/nginx.conf
+            for child in */Dockerfile; do
+              base=$(sed -n "s#^FROM \(ghcr.io/$USER/$path:[^ ]*\).*#\1#p" "$child")
+              if [ -n "$base" ]; then docker tag "$USER/$path:test" "$base"; fi
+            done
+            echo "::endgroup::"
+          done
+
   build:
+    needs: test
     if: github.repository_owner == 'Alwatr'
 
     name: Build & Publish Containers
@@ -99,26 +128,6 @@ jobs:
             type=semver,enable=true,pattern={{major}}.{{minor}}
             type=semver,enable=true,pattern={{version}}
             type=ref,enable=true,event=branch
-
-      - name: 🚀 Build and export to docekr
-        if: ${{ steps.file_change.outputs.container_folder != 'false' }}
-        uses: docker/build-push-action@v7
-        with:
-          context: ./${{matrix.path}}
-          push: false
-          load: true
-          tags: ${{env.USER}}/${{matrix.path}}:test
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
-          build-args: |
-            BUILD_DATE=${{github.event.repository.updated_at}}
-            BUILD_REV=${{github.sha}}
-
-      - name: 🧪 Run tests
-        if: ${{ steps.file_change.outputs.container_folder != 'false' }}
-        run: |
-          echo "Running tests for ${{matrix.path}}"
-          docker run --rm -e TEST_MODE=1 ${{env.USER}}/${{matrix.path}}:test /etc/nginx/entrypoint.sh nginx -T -c /etc/nginx/nginx.conf
 
       - name: 🚀 Build and publish container image
         if: ${{ steps.file_change.outputs.container_folder != 'false' }}
