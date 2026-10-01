@@ -3,7 +3,7 @@
 set -eu
 
 LC_ALL=C
-ME=$(basename "$0")
+ME=${0##*/}
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 case "${NGINX_PROCESSES_AUTOTUNE:-}" in

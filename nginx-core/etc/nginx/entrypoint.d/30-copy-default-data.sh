@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-ME=$(basename "$0")
+ME=${0##*/}
 
 test ! -d "/default-data" && exit 0
 

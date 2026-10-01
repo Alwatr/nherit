@@ -1,9 +1,10 @@
 /*
  * Alwatr lowercase URI module.
  *
- * Lowercases the normalized request URI ($uri) once, before any rewrite or location matching,
- * so every location and try_files serves the lowercase file without a redirect.
- * $request_uri and the query string stay untouched. Loading the module enables it.
+ * Adds the $lowercase_uri variable: the current normalized request URI ($uri) in lowercase.
+ * It is meant as a try_files fallback, so it is evaluated only when the original file is missing:
+ *
+ *     try_files $uri $uri/ $lowercase_uri $lowercase_uri/ =404;
  */
 
 #include <ngx_config.h>
@@ -11,13 +12,14 @@
 #include <ngx_http.h>
 
 
-static ngx_int_t ngx_http_lowercase_uri_handler(ngx_http_request_t *r);
-static ngx_int_t ngx_http_lowercase_uri_init(ngx_conf_t *cf);
+static ngx_int_t ngx_http_lowercase_uri_variable(ngx_http_request_t *r,
+    ngx_http_variable_value_t *v, uintptr_t data);
+static ngx_int_t ngx_http_lowercase_uri_add_variable(ngx_conf_t *cf);
 
 
 static ngx_http_module_t  ngx_http_lowercase_uri_module_ctx = {
-    NULL,                                  /* preconfiguration */
-    ngx_http_lowercase_uri_init,           /* postconfiguration */
+    ngx_http_lowercase_uri_add_variable,   /* preconfiguration */
+    NULL,                                  /* postconfiguration */
 
     NULL,                                  /* create main configuration */
     NULL,                                  /* init main configuration */
@@ -46,61 +48,42 @@ ngx_module_t  ngx_http_lowercase_uri_module = {
 };
 
 
+static ngx_str_t  ngx_http_lowercase_uri_name = ngx_string("lowercase_uri");
+
+
 static ngx_int_t
-ngx_http_lowercase_uri_handler(ngx_http_request_t *r)
+ngx_http_lowercase_uri_variable(ngx_http_request_t *r,
+    ngx_http_variable_value_t *v, uintptr_t data)
 {
-    u_char  *p, *last, *uri;
-
-    last = r->uri.data + r->uri.len;
-
-    /* find the first byte that changes when lowercased */
-
-    for (p = r->uri.data; p < last; p++) {
-        if (ngx_tolower(*p) != *p) {
-            break;
-        }
+    v->data = ngx_pnalloc(r->pool, r->uri.len);
+    if (v->data == NULL) {
+        return NGX_ERROR;
     }
 
-    if (p == last) {
-        return NGX_DECLINED;
-    }
+    ngx_strlow(v->data, r->uri.data, r->uri.len);
 
-    uri = r->uri.data;
+    v->len = r->uri.len;
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
 
-    if (uri == r->unparsed_uri.data) {
-        /* $uri shares the client buffer with $request_uri, keep the latter untouched */
-
-        uri = ngx_pnalloc(r->pool, r->uri.len);
-        if (uri == NULL) {
-            return NGX_HTTP_INTERNAL_SERVER_ERROR;
-        }
-
-        ngx_memcpy(uri, r->uri.data, p - r->uri.data);
-    }
-
-    ngx_strlow(uri + (p - r->uri.data), p, last - p);
-
-    r->uri.data = uri;
-    ngx_http_set_exten(r);
-
-    return NGX_DECLINED;
+    return NGX_OK;
 }
 
 
 static ngx_int_t
-ngx_http_lowercase_uri_init(ngx_conf_t *cf)
+ngx_http_lowercase_uri_add_variable(ngx_conf_t *cf)
 {
-    ngx_http_handler_pt        *h;
-    ngx_http_core_main_conf_t  *cmcf;
+    ngx_http_variable_t  *var;
 
-    cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
+    /* not cacheable, like $uri: it follows $uri after internal redirects */
 
-    h = ngx_array_push(&cmcf->phases[NGX_HTTP_POST_READ_PHASE].handlers);
-    if (h == NULL) {
+    var = ngx_http_add_variable(cf, &ngx_http_lowercase_uri_name, NGX_HTTP_VAR_NOCACHEABLE);
+    if (var == NULL) {
         return NGX_ERROR;
     }
 
-    *h = ngx_http_lowercase_uri_handler;
+    var->get_handler = ngx_http_lowercase_uri_variable;
 
     return NGX_OK;
 }

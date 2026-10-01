@@ -2,7 +2,7 @@
 
 set -eu
 
-ME=$(basename "$0")
+ME=${0##*/}
 
 case "${NGINX_DISALLOW_ROBOTS:-}" in
 1 | on | true | yes | ON | On | True | TRUE | Yes | YES)

@@ -3,7 +3,7 @@
 
 set -eu
 
-ME=$(basename "$0")
+ME=${0##*/}
 
 test -z "${NGINX_CONFIG_JS_URI:-}" && exit 0;
 
