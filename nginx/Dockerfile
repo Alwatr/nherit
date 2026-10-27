@@ -1,4 +1,4 @@
-FROM docker.io/library/nginx:1.31.6-alpine-otel AS build
+FROM docker.io/library/nginx:1.31.8-alpine-otel AS build
 
 # Alwatr native modules source
 COPY modules/ /tmp/alwatr-modules/
@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     /tmp/modules/;
 
 # Final stage
-FROM docker.io/library/nginx:1.31.6-alpine-otel
+FROM docker.io/library/nginx:1.31.8-alpine-otel
 
 # Clean default configurations and files
 RUN rm -rfv /docker-entrypoint* /etc/nginx/conf.d/* /etc/nginx/nginx.conf /var/www/html /usr/share/nginx/html /data
@@ -88,9 +88,9 @@ ENV IMAGE_VERSION=$BUILD_VERSION \
     IMAGE_REVISION=$BUILD_REV
 LABEL org.opencontainers.image.title="alwatr/nginx" \
       org.opencontainers.image.description="The slim (lightweight) version of the NGINX web server, packaged by Alwatr." \
-      org.opencontainers.image.base.name="docker.io/library/nginx:1.31.6-alpine-otel" \
-      org.opencontainers.image.version="1.31.6" \
-      org.opencontainers.image.ref.name="1.31.6-alpine-otel" \
+      org.opencontainers.image.base.name="docker.io/library/nginx:1.31.8-alpine-otel" \
+      org.opencontainers.image.version="1.31.8" \
+      org.opencontainers.image.ref.name="1.31.8-alpine-otel" \
       org.opencontainers.image.licenses="MPL-2.0" \
       org.opencontainers.image.created=${BUILD_DATE} \
       org.opencontainers.image.revision=${BUILD_REV} \
