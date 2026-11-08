@@ -1,9 +1,1 @@
-{
-  "ok": false,
-  "statusCode": <!--# echo var="status" default="500" -->,
-  "errorCode": "serve_error",
-  "meta": {
-    "server": "alwatr",
-    "status": "<!--# echo var="status_text" default="Something goes wrong." -->"
-  }
-}
+{"ok":false,"errorCode": "serve_error"}
